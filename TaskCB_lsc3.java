@@ -26,13 +26,13 @@ public class TaskCB extends IflTaskCB
   private static int DefaultPriority;
   private static String DefaultStr;
   
-    private PageTable taskPageTable;
-    private int taskStatus;
-    private int taskPriority;
-    private ThreadCB taskThread;
-    private int taskID;
-    private double taskCreationTime;
-    private OpenFile taskSwapFile;
+    // private PageTable taskPageTable;
+    // private int taskStatus;
+    // private int taskPriority;
+    // private ThreadCB taskThread;
+    // private int taskID;
+    // private double taskCreationTime;
+    // private OpenFile taskSwapFile;
     private Vector<ThreadCB> threadList;
     private Vector<OpenFile> openFileList;
     private Vector<PortCB> portList;
@@ -61,106 +61,107 @@ public class TaskCB extends IflTaskCB
         portList = new Vector<PortCB>();
     }
     
-    /**
-    *   Sets the page table of the task.
-    */
-    final public void setPageTable(PageTable table){
-      MyOut.print(this, DefaultStr + " setPageTable()");
-      System.out.println("XXL@TaskCB.setpageTable");
-        this.taskPageTable = table;
-    }
-    /**
-    *   Returns the page table of the task.
-    */
-    final public PageTable getPageTable(){
-      MyOut.print(this, DefaultStr + " getPageTable()");
-        return this.taskPageTable;
-    }
-    /**
-    *   Sets the status of the task.
-    */
-    final public void setStatus(int status){
-      ///?
-      MyOut.print(this, DefaultStr + " setStatus to " + status);
-        this.taskStatus = status;
-    }
-    /**
-    *   Returns the status of the task. Allowed
-    *   values are TaskLive and TaskTerm.
-    */
-    final public int getStatus(){
-      MyOut.print(this, DefaultStr + " getStatus");
-        ///?
-        return (this.taskStatus == GlobalVariables.TaskTerm) ? this.taskStatus : GlobalVariables.TaskLive;
-    }
-    /**
-    *   Sets the priority of the task
-    */
-    final public void setPriority(int priority){
-      MyOut.print(this, DefaultStr + " setPriority to " + priority);
-        this.taskPriority = priority;
-    }
-    /**
-    *   Returns the priority of the task
-    */
-    final public int getPriority(){
-      MyOut.print(this, DefaultStr + " getPriority()");
-        return this.taskPriority;
-    }
-    /**
-    *   Sets the current thread of the task.
-    */
-    public void setCurrentThread(ThreadCB t){
-      MyOut.print(this, DefaultStr + " setCurrentThread:" + t);
-        if (!threadList.contains(t)) {
-            addThread(t);
-        }
+    // /**
+    // *   Sets the page table of the task.
+    // */
+    // final public void setPageTable(PageTable table){
+    //   MyOut.print(this, DefaultStr + " setPageTable()");
+    //   System.out.println("XXL@TaskCB.setpageTable");
+    //     this.taskPageTable = table;
+    // }
+    // /**
+    // *   Returns the page table of the task.
+    // */
+    // final public PageTable getPageTable(){
+    //   MyOut.print(this, DefaultStr + " getPageTable()");
+    //     return this.taskPageTable;
+    // }
+    // /**
+    // *   Sets the status of the task.
+    // */
+    // final public void setStatus(int status){
+    //   ///?
+    //   MyOut.print(this, DefaultStr + " setStatus to " + status);
+    //     this.taskStatus = status;
+    // }
+    // /**
+    // *   Returns the status of the task. Allowed
+    // *   values are TaskLive and TaskTerm.
+    // */
+    // final public int getStatus(){
+    //   MyOut.print(this, DefaultStr + " getStatus");
+    //     ///?
+    //     return (this.taskStatus == GlobalVariables.TaskTerm) ? this.taskStatus : GlobalVariables.TaskLive;
+    // }
+    // /**
+    // *   Sets the priority of the task
+    // */
+    // final public void setPriority(int priority){
+    //   MyOut.print(this, DefaultStr + " setPriority to " + priority);
+    //     this.taskPriority = priority;
+    // }
+    // /**
+    // *   Returns the priority of the task
+    // */
+    // final public int getPriority(){
+    //   MyOut.print(this, DefaultStr + " getPriority()");
+    //     return this.taskPriority;
+    // }
+    // /**
+    // *   Sets the current thread of the task.
+    // */
+    // public void setCurrentThread(ThreadCB t){
+    //   MyOut.print(this, DefaultStr + " setCurrentThread:" + t);
+    //     if (!threadList.contains(t)) {
+    //         do_addThread(t);
+    //     }
         
-        this.taskThread = t;
-    }
-    /**
-    *   Return the current thread of the task. The current thread is the thread
-    *   that will run when the task is made current by the dispatcher.
-    */
-    public void getCurrentThread(){
-      MyOut.print(this, DefaultStr + " getCurrentThread");
-        return this.taskThread;
-    }
-    /**
-    *   Returns the ID of the task.
-    */
-    final public int getID(){
-      MyOut.print(this, DefaultStr + " getID()");
-        return this.taskID;
-    }
-    /**
-    *   Sets the task creation time to time
-    */
-    final public void setCreationTime(double time){
-      MyOut.print(this, DefaultStr + " setCreationTime as " + time);
-        this.taskCreationTime = time;
-    }
-    /**
-    *   Returns the task creation time.
-    */
-    final public double getCreationTime(){
-      MyOut.print(this, DefaultStr + " getCreationTime()");
-        return this.taskCreationTime;
-    }
-    /**
-    *   Sets the swap file of task to file.
-    */
-    public final void setSwapFile(OpenFile file){
-      MyOut.print(this, DefaultStr + " setSwapFile as " + file);
-        this.taskSwapFile = file;
-    }
-    /**
-    *   Returns the swap file of the task.
-    */
-    public final OpenFile getSwapFile(){
-      MyOut.print(this, DefaultStr + " getSwapFile()");
-        return this.taskSwapFile;
-    }
+    //     this.taskThread = t;
+    // }
+    // /**
+    // *   Return the current thread of the task. The current thread is the thread
+    // *   that will run when the task is made current by the dispatcher.
+    // */
+    // public void getCurrentThread(){
+    //   MyOut.print(this, DefaultStr + " getCurrentThread");
+    //     return this.taskThread;
+    // }
+    // /**
+    // *   Returns the ID of the task.
+    // */
+    // final public int getID(){
+    //   MyOut.print(this, DefaultStr + " getID()");
+    //     return this.taskID;
+    // }
+
+    // /**
+    // *   Sets the task creation time to time
+    // */
+    // final public void setCreationTime(double time){
+    //   MyOut.print(this, DefaultStr + " setCreationTime as " + time);
+    //     this.taskCreationTime = time;
+    // }
+    // /**
+    // *   Returns the task creation time.
+    // */
+    // final public double getCreationTime(){
+    //   MyOut.print(this, DefaultStr + " getCreationTime()");
+    //     return this.taskCreationTime;
+    // }
+    // /**
+    // *   Sets the swap file of task to file.
+    // */
+    // public final void setSwapFile(OpenFile file){
+    //   MyOut.print(this, DefaultStr + " setSwapFile as " + file);
+    //     this.taskSwapFile = file;
+    // }
+    // /**
+    // *   Returns the swap file of the task.
+    // */
+    // public final OpenFile getSwapFile(){
+    //   MyOut.print(this, DefaultStr + " getSwapFile()");
+    //     return this.taskSwapFile;
+    // }
 
     /**
 *       This method is called once at the beginning of the
@@ -171,7 +172,7 @@ public class TaskCB extends IflTaskCB
     public static void init()
     {
       DefaultStr = "XXL@";
-      MyOut.print(this, DefaultStr + " priority is initiated to 2");
+      MyOut.print(null, DefaultStr + "Task default priority is initiated to 2");
       DefaultPriority = 2;
     }
 
@@ -181,14 +182,14 @@ public class TaskCB extends IflTaskCB
 *        Creates a new thread list, sets TaskLive status and creation time,
 *        creates and opens the task's swap file of the size equal to the size
 * (in bytes) of the addressable virtual memory.
-*
+*s
 * @return task or null
 *
 *        @OSPProject Tasks
     */
     static public TaskCB do_create()
     {
-      MyOut.print(this, DefaultStr + " creating task...");
+      MyOut.print(null, DefaultStr + " creating task...");
         // Creates Task object
         TaskCB newTask = new TaskCB();
 
@@ -219,7 +220,7 @@ public class TaskCB extends IflTaskCB
         *   if fail to open; set swap file to the task otherwise
         */
         if (swapFile == null) {
-      MyOut.warning(this, DefaultStr + " task creation fail.");
+      MyOut.warning(null, DefaultStr + " task creation fail.");
             ThreadCB.dispatch();
             return null;
         } else{
@@ -231,7 +232,7 @@ public class TaskCB extends IflTaskCB
         newTask.setCurrentThread(firstThread);
         
         // Return the Task object
-      MyOut.print(this, DefaultStr + " task creation successful.");
+      MyOut.print(null, DefaultStr + " task creation successful.");
         return newTask;
     }
 
@@ -272,7 +273,10 @@ public class TaskCB extends IflTaskCB
         for (OpenFile newOpenFile : openFileList) {
             newOpenFile.close();
         }
-        FileSys.delete(GlobalVariables.SwapDeviceMountPoint + Integer.toString(getID());
+        FileSys.delete(
+            GlobalVariables.SwapDeviceMountPoint + 
+            Integer.toString(
+                getID()));
     }
 
     /** 
@@ -403,7 +407,7 @@ public class TaskCB extends IflTaskCB
     */
     public static void atError()
     {
-      MyOut.error(this, DefaultStr + " qicheren chuji!");
+      MyOut.error(null, DefaultStr + " qicheren chuji!");
     }
 
     /**
@@ -416,7 +420,7 @@ public class TaskCB extends IflTaskCB
     */
     public static void atWarning()
     {
-      MyOut.warning(this, DefaultStr + " blublu...");
+      MyOut.warning(null, DefaultStr + " blublu...");
     }
 
 
