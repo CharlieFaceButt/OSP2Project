@@ -23,6 +23,9 @@ import osp.Hardware.*;
 public class TaskCB extends IflTaskCB
 {
 
+  private static int DefaultPriority;
+  private static String DefaultStr;
+  
     private PageTable taskPageTable;
     private int taskStatus;
     private int taskPriority;
@@ -37,7 +40,7 @@ public class TaskCB extends IflTaskCB
     /**
 *       The task constructor. Must have
 *
-*       	   super();
+*           super();
 *
 *       as its first statement.
 *
@@ -45,27 +48,40 @@ public class TaskCB extends IflTaskCB
     */
     public TaskCB()
     {
-	super();
+      super();
+    }
+    
+    /**
+     * Setup table for threads, ports, and files
+     */
+    public void setupResources(){
+      MyOut.print(this, DefaultStr + " setupResources()");
         threadList = new Vector<ThreadCB>();
         openFileList = new Vector<OpenFile>();
         portList = new Vector<PortCB>();
     }
+    
     /**
     *   Sets the page table of the task.
     */
     final public void setPageTable(PageTable table){
+      MyOut.print(this, DefaultStr + " setPageTable()");
+      System.out.println("XXL@TaskCB.setpageTable");
         this.taskPageTable = table;
     }
     /**
     *   Returns the page table of the task.
     */
     final public PageTable getPageTable(){
+      MyOut.print(this, DefaultStr + " getPageTable()");
         return this.taskPageTable;
     }
     /**
     *   Sets the status of the task.
     */
     final public void setStatus(int status){
+      ///?
+      MyOut.print(this, DefaultStr + " setStatus to " + status);
         this.taskStatus = status;
     }
     /**
@@ -73,6 +89,7 @@ public class TaskCB extends IflTaskCB
     *   values are TaskLive and TaskTerm.
     */
     final public int getStatus(){
+      MyOut.print(this, DefaultStr + " getStatus");
         ///?
         return (this.taskStatus == GlobalVariables.TaskTerm) ? this.taskStatus : GlobalVariables.TaskLive;
     }
@@ -80,21 +97,25 @@ public class TaskCB extends IflTaskCB
     *   Sets the priority of the task
     */
     final public void setPriority(int priority){
+      MyOut.print(this, DefaultStr + " setPriority to " + priority);
         this.taskPriority = priority;
     }
     /**
     *   Returns the priority of the task
     */
     final public int getPriority(){
+      MyOut.print(this, DefaultStr + " getPriority()");
         return this.taskPriority;
     }
     /**
     *   Sets the current thread of the task.
     */
     public void setCurrentThread(ThreadCB t){
+      MyOut.print(this, DefaultStr + " setCurrentThread:" + t);
         if (!threadList.contains(t)) {
             addThread(t);
         }
+        
         this.taskThread = t;
     }
     /**
@@ -102,36 +123,42 @@ public class TaskCB extends IflTaskCB
     *   that will run when the task is made current by the dispatcher.
     */
     public void getCurrentThread(){
+      MyOut.print(this, DefaultStr + " getCurrentThread");
         return this.taskThread;
     }
     /**
     *   Returns the ID of the task.
     */
     final public int getID(){
+      MyOut.print(this, DefaultStr + " getID()");
         return this.taskID;
     }
     /**
     *   Sets the task creation time to time
     */
     final public void setCreationTime(double time){
+      MyOut.print(this, DefaultStr + " setCreationTime as " + time);
         this.taskCreationTime = time;
     }
     /**
     *   Returns the task creation time.
     */
     final public double getCreationTime(){
+      MyOut.print(this, DefaultStr + " getCreationTime()");
         return this.taskCreationTime;
     }
     /**
     *   Sets the swap file of task to file.
     */
     public final void setSwapFile(OpenFile file){
+      MyOut.print(this, DefaultStr + " setSwapFile as " + file);
         this.taskSwapFile = file;
     }
     /**
     *   Returns the swap file of the task.
     */
     public final OpenFile getSwapFile(){
+      MyOut.print(this, DefaultStr + " getSwapFile()");
         return this.taskSwapFile;
     }
 
@@ -143,6 +170,9 @@ public class TaskCB extends IflTaskCB
     */
     public static void init()
     {
+      DefaultStr = "XXL@";
+      MyOut.print(this, DefaultStr + " priority is initiated to 2");
+      DefaultPriority = 2;
     }
 
     /** 
@@ -150,50 +180,58 @@ public class TaskCB extends IflTaskCB
         *
 *        Creates a new thread list, sets TaskLive status and creation time,
 *        creates and opens the task's swap file of the size equal to the size
-*	(in bytes) of the addressable virtual memory.
+* (in bytes) of the addressable virtual memory.
 *
-*	@return task or null
+* @return task or null
 *
 *        @OSPProject Tasks
     */
     static public TaskCB do_create()
     {
+      MyOut.print(this, DefaultStr + " creating task...");
         // Creates Task object
         TaskCB newTask = new TaskCB();
 
-        // Create PageTable and associate it to the task using setPageTable()
+        // Create PageTable and associate it to the task
         PageTable newPageTable = new PageTable(newTask);
         newTask.setPageTable(newPageTable);
 
+        // Create table for ThreadCBs, PortCBs and OpenFiles for task
+        newTask.setupResources();
+        
         // Set task-creation time, set status to TaskLive, and set priority
         newTask.setCreationTime(HClock.get());
         newTask.setStatus(GlobalVariables.TaskLive);
-        newTask.setPriority(2);
+        newTask.setPriority(DefaultPriority);
 
-        // Create ThreadCB, PortCB and OpenFile for task
-        ///?
 
         /**
         *   Create swap file, get address space size by MMU.getVirtualAddressBits(), 
         *   set name as ID, get directory by SwapDeviceMountPoint. Use FileSys.create()
         *   to create and then use OpenFile.open() to open it.
         */
-
         FileSys.create(Integer.toString(newTask.getID()), MMU.getVirtualAddressBits());
         OpenFile swapFile = OpenFile.open(GlobalVariables.SwapDeviceMountPoint + Integer.toString(newTask.getID()), newTask);
-	newTask.setSwapFile(swapFile);
+
 
         /**
         *   Save the file handle using setSwapFile(), but dispatch a new thread
-        *   if fail to open
+        *   if fail to open; set swap file to the task otherwise
         */
         if (swapFile == null) {
+      MyOut.warning(this, DefaultStr + " task creation fail.");
             ThreadCB.dispatch();
             return null;
+        } else{
+           newTask.setSwapFile(swapFile);
         }
 
-	ThreadCB.create(newTask);
-        // return the Task object
+        // Create the first thread of the task
+        ThreadCB firstThread = ThreadCB.create(newTask);
+        newTask.setCurrentThread(firstThread);
+        
+        // Return the Task object
+      MyOut.print(this, DefaultStr + " task creation successful.");
         return newTask;
     }
 
@@ -204,12 +242,14 @@ public class TaskCB extends IflTaskCB
 *       Sets the status TaskTerm, frees all memory frames 
 *       (reserved frames may not be unreserved, but must be marked 
 *       free), deletes the task's swap file.
-	*
+ *
 *       @OSPProject Tasks
     */
     public void do_kill()
     {
+      MyOut.print(this, DefaultStr + " killing task");
         // Kill all threads
+      MyOut.print(this, DefaultStr + " release threads, ports and memories.");
         for (ThreadCB newTask : threadList) {
             newTask.kill();
         }
@@ -219,29 +259,30 @@ public class TaskCB extends IflTaskCB
             newPort.destroy();
         }
 
+      MyOut.print(this, DefaultStr + " set task status to terminate.");
         // Terminate task
         setStatus(GlobalVariables.TaskTerm);
 
         // Release memory
-	PageTable pagetable = this.getPageTable();
+ PageTable pagetable = this.getPageTable();
         pagetable.deallocateMemory();
 
+      MyOut.print(this, DefaultStr + " close swap files of task");
         // Close all swap files
         for (OpenFile newOpenFile : openFileList) {
             newOpenFile.close();
         }
-
         FileSys.delete(GlobalVariables.SwapDeviceMountPoint + Integer.toString(getID());
     }
 
     /** 
-*	Returns a count of the number of threads in this task. 
-	*
-*	@OSPProject Tasks
+* Returns a count of the number of threads in this task. 
+ *
+* @OSPProject Tasks
     */
     public int do_getThreadCount()
     {
-	return threadList.size();
+ return threadList.size();
     }
 
     /**
@@ -253,6 +294,7 @@ public class TaskCB extends IflTaskCB
   *  */
     public int do_addThread(ThreadCB thread)
     {
+      MyOut.print(this, DefaultStr + " add thread " + thread + " to task");
         if (threadList.size() >= ThreadCB.MaxThreadsPerTask) {
             return GlobalVariables.FAILURE;
         }
@@ -263,17 +305,15 @@ public class TaskCB extends IflTaskCB
     }
 
     /**
-   *    Removes the specified thread from this task. 		
+   *    Removes the specified thread from this task.   
 *
    *    @OSPProject Tasks
     */
     public int do_removeThread(ThreadCB thread)
     {
-        if (getCurrentThread() == thread) {
-            //return GlobalVariables.FAILURE;
-            //setCurrentThread(NULL);
-        }
-	if (!threadList.contains(thread)) {
+      MyOut.print(this, DefaultStr + " remove thread " + thread + " from task");
+      if (!threadList.contains(thread)) {
+      MyOut.warning(this, DefaultStr + " fail to remove thread " + thread);
             return GlobalVariables.FAILURE;
         }
         threadList.remove(thread);        
@@ -292,12 +332,14 @@ public class TaskCB extends IflTaskCB
 
     /**
      *  Add the port to the list of ports owned by this task.
-*	
+* 
      *  @OSPProject Tasks 
     */ 
     public int do_addPort(PortCB newPort)
     {
+      MyOut.print(this, DefaultStr + " add port " + newPort + " to task.");
         if (portList.size() >= PortCB.MaxPortsPerTask) {
+      MyOut.print(this, DefaultStr + " cannot add new port cause index out of bound");
             return GlobalVariables.FAILURE;
         }
         if (!portList.contains(newPort)) {
@@ -313,7 +355,9 @@ public class TaskCB extends IflTaskCB
     */ 
     public int do_removePort(PortCB oldPort)
     {
+      MyOut.print(this, DefaultStr + " remove port " + oldPort + " from task.");
         if (!portList.contains(oldPort)) {
+      MyOut.print(this, DefaultStr + " fail to remove port " + oldPort + " from task.");
             return GlobalVariables.FAILURE;
         }
         portList.remove(oldPort);
@@ -327,19 +371,22 @@ public class TaskCB extends IflTaskCB
     */
     public void do_addFile(OpenFile file)
     {
+      MyOut.print(this, DefaultStr + " add file " + file + " to task.");
         if (!openFileList.contains(file)) {
             openFileList.add(file);
         }
     }
 
     /** 
-*	Remove file from the task's open files table.
+* Remove file from the task's open files table.
 *
-*	@OSPProject Tasks
+* @OSPProject Tasks
     */
     public int do_removeFile(OpenFile file)
     {
+      MyOut.print(this, DefaultStr + " remove file " + file + " from task.");
         if (!openFileList.contains(file)) {
+      MyOut.print(this, DefaultStr + " fail to remove file " + file + " from task.");
             return GlobalVariables.FAILURE;
         }
         openFileList.remove(file);
@@ -356,7 +403,7 @@ public class TaskCB extends IflTaskCB
     */
     public static void atError()
     {
-        System.out.println("YOYO!");
+      MyOut.error(this, DefaultStr + " qicheren chuji!");
     }
 
     /**
@@ -369,7 +416,7 @@ public class TaskCB extends IflTaskCB
     */
     public static void atWarning()
     {
-        System.out.println("blublub...lublu...");
+      MyOut.warning(this, DefaultStr + " blublu...");
     }
 
 
