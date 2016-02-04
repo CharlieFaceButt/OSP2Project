@@ -251,14 +251,16 @@ public class TaskCB extends IflTaskCB
       MyOut.print(this, DefaultStr + " killing task");
         // Kill all threads
       MyOut.print(this, DefaultStr + " release threads, ports and memories.");
-        for (ThreadCB thread : threadList) {
-            thread.kill();
+      int N = threadList.size();
+        for(int i = N - 1; i >= 0; i--) {
+            threadList.elementAt(i).kill();
         }
-
-        // Destroy all ports
-        for (PortCB port : portList) {
-            port.destroy();
+        
+        N = portList.size();
+        for(int i = N - 1; i >= 0; i--) {
+            portList.elementAt(i).destroy();
         }
+        
 
       MyOut.print(this, DefaultStr + " set task status to terminate.");
         // Terminate task
@@ -270,9 +272,11 @@ public class TaskCB extends IflTaskCB
 
       MyOut.print(this, DefaultStr + " close swap files of task");
         // Close all swap files
-        for (OpenFile openFile : openFileList) {
-            openFile.close();
+        N = openFileList.size();
+        for(int i = N - 1; i >= 0; i--) {
+            openFileList.elementAt(i).close();
         }
+
         FileSys.delete(
             GlobalVariables.SwapDeviceMountPoint + 
             Integer.toString(
