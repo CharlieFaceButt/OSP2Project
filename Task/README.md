@@ -8,8 +8,8 @@ XXL
 
 #Group member
 
-*Yuhao Liu (SUID:444219389)
-*Shuchang Liu (SUID:968892838)
+* Yuhao Liu (SUID:444219389)
+* Shuchang Liu (SUID:968892838)
 
 #Project work
 

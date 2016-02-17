@@ -412,7 +412,8 @@ public class TaskCB extends IflTaskCB
     */
     public static void atError()
     {
-      MyOut.error(null, DefaultStr + " qicheren chuji!");
+        String out = DefaultStr + " qicheren chuji!";
+      MyOut.error(out, out);
     }
 
     /**
@@ -425,7 +426,8 @@ public class TaskCB extends IflTaskCB
     */
     public static void atWarning()
     {
-      MyOut.warning(null, DefaultStr + " blublu...");
+        String out = DefaultStr + " blublu...";
+      MyOut.warning(out, out);
     }
 
 
