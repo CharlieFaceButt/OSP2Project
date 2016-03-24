@@ -31,17 +31,23 @@ In Round-Robin scheduling, threads are dispatched in a FIFO sequence but each th
 
 ## Performance analysis
 
-The experiment estimated the performance of this two scheduling algorithms in different situations. The other parameter taken into count are the average length of thread. The performance is estimated through two features: throughput and average response time.
+The experiment estimated the performance of this two scheduling algorithms in different situations. The other parameter taken into count are the average length of thread. The performance is estimated through two features: throughput and average response time. 
+
+We tested performance features for thread length from 2000 clock cycles to 10000 clock cycles. And compare the features between the two algorithm.
 
 Here is the result for response time:
 
 ![Response time](./log/responsetime.png)
 
+In the diagram, the yellow line represent Round-Robin scheduling and the gray line represent FIFO scheduling. Every point in the diagram is an average of two test in identical parameters. We can see from the diagram that the response time is much smaller using Round-Robin, and there is not much difference when applying threads of different length. Still, it is possible to generate different result when the thread length grow much larger. 
+
 Here is the result for throughput:
 
 ![Throughput](./log/throughput.png)
 
-We tested performance features for thread length from 2000 clock cycles to 10000 clock cycles. And compare the features between the two algorithm.
+In the diagram, the yellow line represent Round-Robin scheduling and the gray line represent FIFO scheduling. Every point in the diagram is an average of two test in identical parameters. We can see that the Round-Robin generates a little bit lower throughput when thread life expectancy is shorter. It may due to the time comsumption of timer interrupt. But when thread grows larger, the influence of timer interrupt becomes smaller, and the two line begin to converge.
+
+
 
 # Customized output:
 
