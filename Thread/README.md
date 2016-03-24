@@ -35,7 +35,7 @@ The experiment estimated the performance of this two scheduling algorithms in di
 
 Here are the results:
 
-![Respond time](/log/respond_fcfs.png)
+![Respond time](./log/respond_fcfs.png)
 
 # Customized output:
 
