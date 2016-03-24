@@ -15,11 +15,11 @@ XXL
 
 ## Tasks
 
-|Tasks		|Status	|
-|-----------|-------|
-|Implement FIFO scheduling	|Completed|
-|Implement Round Robin scheduling	|Completed|
-|Record performance of both scheduling	|Incomplete|
+|Tasks		|Status	|Assignment	|
+|-----------|-------|-----------|
+|Implement FIFO scheduling	|Completed|Yuhao Liu are the major contributor to this part|
+|Implement Round Robin scheduling	|Completed|Shuchang Liu are the major contributor to this part|
+|Record performance of both scheduling	|Incomplete|Both members contributed to this part|
 
 ## Design
 
@@ -33,9 +33,15 @@ In Round-Robin scheduling, threads are dispatched in a FIFO sequence but each th
 
 The experiment estimated the performance of this two scheduling algorithms in different situations. The other parameter taken into count are the average length of thread. The performance is estimated through two features: throughput and average response time.
 
-Here are the results:
+Here is the result for response time:
 
-![Respond time](./log/respond_fcfs.png)
+![Response time](./log/responsetime.png)
+
+Here is the result for throughput:
+
+![Throughput](./log/throughput.png)
+
+We tested performance features for thread length from 2000 clock cycles to 10000 clock cycles. And compare the features between the two algorithm.
 
 # Customized output:
 
