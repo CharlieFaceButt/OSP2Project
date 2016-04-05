@@ -58,7 +58,7 @@ public class PageTableEntry extends IflPageTableEntry
         //Check if page is in page fault
         if (getValidatingThread() != null) {
           //If the same thread causes the page fault, return immediately
-          if (thread.isEqual(getValidatingThread())) {
+          if (thread.getID() == getValidatingThread().getID())) {
             return final_check_do_lock(thread);
           }
           //If a different thread caused a page fault previously, this 
@@ -107,7 +107,7 @@ public class PageTableEntry extends IflPageTableEntry
     {
       //decrement lock Count
       FrameTableEntry frame = getFrame();
-      frame.incrementLockCount();
+      frame.decrementLockCount();
       if (frame.getLockCount() < 0) {
         MyOut.error(frame, "<XXL>: frame lock count becomes negative");
       }
