@@ -47,10 +47,6 @@ public class PageTableEntry extends IflPageTableEntry
      */
     public int do_lock(IORB iorb)
     {
-      //increment lock Count
-      FrameTableEntry frame = getFrame();
-      frame.incrementLockCount();
-
       //The requesting thread? using getTask()?
       ThreadCB thread = iorb.getThread();
       //Call page fault when the page is not in memory frame
@@ -58,7 +54,7 @@ public class PageTableEntry extends IflPageTableEntry
         //Check if page is in page fault
         if (getValidatingThread() != null) {
           //If the same thread causes the page fault, return immediately
-          if (thread.getID() == getValidatingThread().getID())) {
+          if (thread.getID() == getValidatingThread().getID()) {
             return final_check_do_lock(thread);
           }
           //If a different thread caused a page fault previously, this 
@@ -86,15 +82,14 @@ public class PageTableEntry extends IflPageTableEntry
           //call page fault. It is already kernel mode so no need to 
           //cause an interrupt
           int pfresult = PageFaultHandler.handlePageFault(
-            thread, iorb.getReferenceType(), this); 
+            thread, MemoryLock, this); 
           //Page fault may fail due to insufficient memory
           if (pfresult == FAILURE) {
             return FAILURE;
           }
-          return final_check_do_lock(thread);
         }
       }
-
+      return final_check_do_lock(thread);
     }
 
     /** This method decreases the lock count on the page by one. 
@@ -107,6 +102,7 @@ public class PageTableEntry extends IflPageTableEntry
     {
       //decrement lock Count
       FrameTableEntry frame = getFrame();
+      MyOut.print(this, "Unlock memory frame");
       frame.decrementLockCount();
       if (frame.getLockCount() < 0) {
         MyOut.error(frame, "<XXL>: frame lock count becomes negative");
@@ -121,9 +117,14 @@ public class PageTableEntry extends IflPageTableEntry
     */
     private int final_check_do_lock(ThreadCB thread){
       //If the locking thread is killed, return failure
-      if (thread.getStatus() == GlobalViriables.ThreadKill) {
+      if (thread.getStatus() == ThreadKill) {
         return FAILURE;
-      } else return SUCCESS;
+      } else  {
+        FrameTableEntry frame = getFrame();
+        //increment lock Count
+        frame.incrementLockCount();
+        return SUCCESS;
+      }
     }
 }
 

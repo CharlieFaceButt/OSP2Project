@@ -32,14 +32,15 @@ public class PageTable extends IflPageTable
 
         //Get max number of pages allowed
         int pageAddressBit = MMU.getPageAddressBits();
-        int maxNumberOfPagesAllowed = (int)Math.(2, pageAddressBit);
+        int maxNumberOfPagesAllowed = (int)Math.pow(2, pageAddressBit);
 
+        //? how to determine the number of pages
         //Initiate page table
         pages = new PageTableEntry[maxNumberOfPagesAllowed];
         //Create each page table entry
         for (int i = 0; i < maxNumberOfPagesAllowed; i ++) {
           //?correct page number
-          pages[i] = new PageTableEntry(this, i));
+          pages[i] = new PageTableEntry(this, i);
         }
     }
 
@@ -53,15 +54,19 @@ public class PageTable extends IflPageTable
     {
         for (int i = 0; i < pages.length; i ++) {
             PageTableEntry entry = pages[i];
-            //If the frame is allocated to the task, unset the flags for
-            //this frame
-            if (entry.getTask().getID() == getTask().getID()) {
-            FrameTableEntry frame = entry.getFrame();
-            frame.setPage(null);
-            frame.setDirty(FALSE);
-            frame.setReferenced(FALSE);
-            frame.setReserved(FALSE); //?
-          }   
+            if (entry.isValid()) {
+                FrameTableEntry frame = entry.getFrame();
+                //If the frame is controled by the same page of the 
+                //same task, free the frame.
+                if (frame.getPage().getID() == entry.getID() &&
+                    frame.getPage().getTask().getID() == entry.getTask().getID()) {
+                    //It is possible that some of the frame is locked, 
+                    //the frame cannot be freed in this case, but it 
+                    //will never be freed if there is no daemon refresh
+                    //the memory. 
+                    MMU.free(frame);
+                }
+            }
         }
         //?Unlocking inside the memory management module can lead to 
         //inconsistencies

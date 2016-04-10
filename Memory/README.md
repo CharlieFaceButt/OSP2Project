@@ -28,6 +28,7 @@ XXL
 
 ## Performance analysis
 
+There is a mistake made by OSP2 manual. In Memory section, MMU class, it is said that getPageAddressBits() is used to get the number of bits representing offset within a page. But actually OSP2 software use it to represent the page number instead. 
 
 
 # Customized output:
