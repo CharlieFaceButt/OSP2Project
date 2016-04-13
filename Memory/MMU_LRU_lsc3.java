@@ -19,6 +19,23 @@ import osp.FileSys.OpenFile;
 public class MMU extends IflMMU
 {
     private static GenericList LRUlist;
+    private static int PFAmount;
+    private static int successfulPFAmount;
+
+    public static void addPFstats(boolean successful){
+      if (successful) {
+        successfulPFAmount ++;
+      }
+      PFAmount ++;
+    }
+
+    public static int getPFstats() {
+      int PFstats;
+      PFstats = successfulPFAmount / PFAmount;
+      return PFatats;
+    }
+
+
     /** 
     *        This method is called once before the simulation starts. 
     *	       Can be used to initialize the frame table and other static variables.
@@ -27,6 +44,8 @@ public class MMU extends IflMMU
     */
     public static void init()
     {
+      PFAmount = 0;
+      successfulPFamount = 0;
       LRUlist = new GenericList();
       int frameTableSize = MMU.getFrameTableSize();
       for (int i = 0; i < frameTableSize; i++) {

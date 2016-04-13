@@ -296,6 +296,11 @@ public class PageFaultHandler extends IflPageFaultHandler
         page.notifyThreads();
         //Call the dispatcher to give control of CPU
         ThreadCB.dispatch();
+        if (exitFlag == SUCCESS) {
+            MMU.addPFstats(true);
+        } else MMU.addPFstats(false);
+        MyOut.print(page, "page fault #: " + MMU.getPFstats());
+
         return exitFlag;
     }
 }
