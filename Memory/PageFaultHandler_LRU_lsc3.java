@@ -9,6 +9,7 @@ import osp.IFLModules.*;
 import osp.Interrupts.*;
 import osp.Utilities.*;
 import osp.IFLModules.*;
+import java.io.*;
 
 /**
 *    The page fault handler is responsible for handling a page
@@ -296,13 +297,33 @@ public class PageFaultHandler extends IflPageFaultHandler
         page.notifyThreads();
         //Call the dispatcher to give control of CPU
         ThreadCB.dispatch();
-        if (exitFlag == SUCCESS) {
-            MMU.addPFstats(true);
-        } else MMU.addPFstats(false);
-        MyOut.print(page, "page fault #: " + MMU.getPFAmount());
-        MyOut.print(page, "successful page fault #: " + MMU.getSuccessfulPFAmount());
-        MyOut.print(page, "page faults per reference: " + MMU.getSuccessfulPFAmount() / MMU.getReferencedPageNum());
-
+        do_stats(page, (exitFlag == SUCCESS)?true:false);
         return exitFlag;
+    }
+
+    /**
+    *   This method is called before pagefault function return. It
+    *   calculates some statistics and append them to a file.
+    */
+    private static void do_stats(PageTableEntry page, boolean successful){
+        //Statistics
+        MMU.addPFstats(successful);
+        String statStr = "";
+
+        statStr += ("[clock:" + HClock.get() + "]: SPF/PF/REF = (" + 
+            MMU.getSuccessfulPFAmount() + "/" + 
+            MMU.getPFAmount() + "/" + 
+            MMU.getReferencedPageNum() + ")\r\n");
+        //Write the statics to file
+        if (fw == null) {
+            String filename= "Statistics.txt";
+            fw = new FileWriter(filename,true);
+        }
+        try{ //the true will append the new data
+            fw.write(statStr);//appends the string to the file
+        } catch(IOException ioe) {
+            System.err.println("IOException: " + ioe.getMessage());
+        }
+        MyOut.print(page, statStr);
     }
 }
