@@ -306,24 +306,26 @@ public class PageFaultHandler extends IflPageFaultHandler
     *   calculates some statistics and append them to a file.
     */
     private static void do_stats(PageTableEntry page, boolean successful){
-        //Statistics
         MMU.addPFstats(successful);
-        String statStr = "";
+        //Statistics
+        new Thread(new Runnable(){
+            public void run(){
+                String statStr = "";
+                statStr += ("[clock:" + HClock.get() + "]: SPF/PF/REF = (" + 
+                    MMU.getSuccussfulPFAmount() + "/" + 
+                    MMU.getPFAmount() + "/" + 
+                    MMU.getReferencedPageNum() + ")\r\n");
+                //Write the statics to file
 
-        statStr += ("[clock:" + HClock.get() + "]: SPF/PF/REF = (" + 
-            MMU.getSuccessfulPFAmount() + "/" + 
-            MMU.getPFAmount() + "/" + 
-            MMU.getReferencedPageNum() + ")\r\n");
-        //Write the statics to file
-        if (fw == null) {
-            String filename= "Statistics.txt";
-            fw = new FileWriter(filename,true);
-        }
-        try{ //the true will append the new data
-            fw.write(statStr);//appends the string to the file
-        } catch(IOException ioe) {
-            System.err.println("IOException: " + ioe.getMessage());
-        }
-        MyOut.print(page, statStr);
+                String filename= "Statistics.txt";
+                try{ //the true will append the new data
+                    FileWriter fw = new FileWriter(filename, true);
+                    fw.write(statStr);//appends the string to the file
+                    fw.close();
+                } catch(IOException ioe) {
+                    System.err.println("IOException: " + ioe.getMessage());
+                }
+            }
+        }).start();
     }
 }
