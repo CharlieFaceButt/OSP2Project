@@ -299,7 +299,9 @@ public class PageFaultHandler extends IflPageFaultHandler
         if (exitFlag == SUCCESS) {
             MMU.addPFstats(true);
         } else MMU.addPFstats(false);
-        MyOut.print(page, "page fault #: " + MMU.getPFstats());
+        MyOut.print(page, "page fault #: " + MMU.getPFAmount());
+        MyOut.print(page, "successful page fault #: " + MMU.getSuccessfulPFAmount());
+        MyOut.print(page, "page faults per reference: " + MMU.getSuccessfulPFAmount() / MMU.getReferencedPageNum());
 
         return exitFlag;
     }

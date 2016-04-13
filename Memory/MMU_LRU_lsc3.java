@@ -20,7 +20,8 @@ public class MMU extends IflMMU
 {
     private static GenericList LRUlist;
     private static int PFAmount;
-    private static int successfulPFAmount;
+    private static float successfulPFAmount;
+    private static int referencedPageNum;
 
     public static void addPFstats(boolean successful){
       if (successful) {
@@ -29,10 +30,20 @@ public class MMU extends IflMMU
       PFAmount ++;
     }
 
-    public static int getPFstats() {
-      int PFstats;
-      PFstats = successfulPFAmount / PFAmount;
-      return PFatats;
+    public static int getPFAmount() {
+      return PFAmount;
+    }
+
+    public static float getSuccussfulPFAmount() {
+      return successfulPFAmount;
+    }
+
+    public static void addReferencedPageNum() {
+      referencedPageNum ++;
+    }
+
+    public static int getReferencedPageNum() {
+      return referencedPageNum;
     }
 
 
@@ -45,7 +56,8 @@ public class MMU extends IflMMU
     public static void init()
     {
       PFAmount = 0;
-      successfulPFamount = 0;
+      successfulPFAmount = 0;
+      referencedPageNum = 0;
       LRUlist = new GenericList();
       int frameTableSize = MMU.getFrameTableSize();
       for (int i = 0; i < frameTableSize; i++) {
@@ -129,6 +141,7 @@ public class MMU extends IflMMU
           if (thread.getStatus() == ThreadKill || 
             thread.getTask().getStatus() == TaskTerm) {
             MyOut.print(thread, "\t requesting thread is killed during page fault of " + page);
+            addReferencedPageNum();
             return page;
           }
           MyOut.print(thread, "\t Initiate page fault for page " + page);
@@ -152,7 +165,7 @@ public class MMU extends IflMMU
 
       //Each reference may cause changes in the LRU count
       do_LRUAlignment(validFrame);
-
+      addReferencedPageNum();
       return page;
     }
 
