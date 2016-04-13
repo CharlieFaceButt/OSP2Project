@@ -19,6 +19,8 @@ import osp.IFLModules.*;
 // */
 public class PageFaultHandler extends IflPageFaultHandler
 {
+
+    private static FileWriter fw;
  //    /**
  //        This method handles a page fault. 
 
@@ -79,10 +81,7 @@ public class PageFaultHandler extends IflPageFaultHandler
         // your code goes here
         TaskCB Task = thread.getTask();
         if(page.isValid()) {
-            MMU.addPFstats(false);
-            MyOut.print(page, "page fault #: " + MMU.getPFAmount());
-            MyOut.print(page, "successful page fault #: " + MMU.getSuccessfulPFAmount());
-            MyOut.print(page, "page faults per reference: " + MMU.getSuccessfulPFAmount() / MMU.getReferencedPageNum());
+            do_stats(page, false);
             return FAILURE;
         }
         FrameTableEntry newFrame = null;
@@ -92,10 +91,7 @@ public class PageFaultHandler extends IflPageFaultHandler
             while((newFrame.isOccupied()) || ((newFrame.getPage() != null) && (newFrame.getPage().getValidatingThread() != null))) {
                 newFrame = MMU.getFIFOFrame();
                 if(newFrame == null) {
-                    MMU.addPFstats(false);
-                    MyOut.print(page, "page fault #: " + MMU.getPFAmount());
-                    MyOut.print(page, "successful page fault #: " + MMU.getSuccessfulPFAmount());
-                    MyOut.print(page, "page faults per reference: " + MMU.getSuccessfulPFAmount() / MMU.getReferencedPageNum());
+                    do_stats(page, false);
                     return NotEnoughMemory;
                 }
             }            
@@ -114,10 +110,7 @@ public class PageFaultHandler extends IflPageFaultHandler
                     page.notifyThreads();
                     event.notifyThreads();
                     ThreadCB.dispatch();
-                    MMU.addPFstats(false);
-                    MyOut.print(page, "page fault #: " + MMU.getPFAmount());
-                    MyOut.print(page, "successful page fault #: " + MMU.getSuccessfulPFAmount());
-                    MyOut.print(page, "page faults per reference: " + MMU.getSuccessfulPFAmount() / MMU.getReferencedPageNum());
+                    do_stats(page, false);
                     return FAILURE;
                 }
                 newFrame.setDirty(false);
@@ -141,10 +134,8 @@ public class PageFaultHandler extends IflPageFaultHandler
             page.setFrame(null);
             event.notifyThreads();
             ThreadCB.dispatch();
-            MMU.addPFstats(false);
-            MyOut.print(page, "page fault #: " + MMU.getPFAmount());
-            MyOut.print(page, "successful page fault #: " + MMU.getSuccessfulPFAmount());
-            MyOut.print(page, "page faults per reference: " + MMU.getSuccessfulPFAmount() / MMU.getReferencedPageNum());
+            //staitistics
+            do_stats(page, false);
             return FAILURE;
         }
 
@@ -159,13 +150,35 @@ public class PageFaultHandler extends IflPageFaultHandler
         page.notifyThreads();
         event.notifyThreads();
         ThreadCB.dispatch();
-        MMU.addPFstats(true);
-        MyOut.print(page, "page fault #: " + MMU.getPFAmount());
-        MyOut.print(page, "successful page fault #: " + MMU.getSuccessfulPFAmount());
-        if(MMU.getReferencedPageNum() != 0) {
-            MyOut.print(page, "page faults per reference: " + MMU.getSuccessfulPFAmount() / MMU.getReferencedPageNum());       
-        }
+        //Statistics
+        do_stats(page, true);
         return SUCCESS;
+    }
+
+    /**
+    *   This method is called before pagefault function return. It
+    *   calculates some statistics and append them to a file.
+    */
+    private static void do_stats(PageTableEntry page, boolean successful){
+        //Statistics
+        MMU.addPFstats(successful);
+        String statStr = "";
+
+        statStr += ("[clock:" + HTimer.get() + "]: SPF/PF/REF = (" + 
+            MMU.getSuccessfulPFAmount() + "/" + 
+            MMU.getPFAmount() + "/" + 
+            MMU.getReferencedPageNum() + ")\r\n");
+        //Write the statics to file
+        if (fw == null) {
+            String filename= "Statistics.txt";
+            fw = new FileWriter(filename,true);
+        }
+        try{ //the true will append the new data
+            fw.write(statStr);//appends the string to the file
+        } catch(IOException ioe) {
+            System.err.println("IOException: " + ioe.getMessage());
+        }
+        MyOut.print(page, statStr);
     }
 
     private static FrameTableEntry GetNewFrame() {
