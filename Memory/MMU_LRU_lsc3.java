@@ -20,7 +20,7 @@ public class MMU extends IflMMU
 {
     private static GenericList LRUlist;
     private static int PFAmount;
-    private static float successfulPFAmount;
+    private static int successfulPFAmount;
     private static int referencedPageNum;
 
     public static void addPFstats(boolean successful){
@@ -34,7 +34,7 @@ public class MMU extends IflMMU
       return PFAmount;
     }
 
-    public static float getSuccussfulPFAmount() {
+    public static int getSuccussfulPFAmount() {
       return successfulPFAmount;
     }
 
@@ -177,7 +177,8 @@ public class MMU extends IflMMU
       MyOut.print(thread, "Set reference bit and dirty bit");
       //It is possible that the refencing thread is killed at this 
       //time, then no changes should be made
-      if (thread.getStatus() == ThreadKill) {
+      if (thread.getStatus() == ThreadKill || 
+            thread.getTask().getStatus() == TaskTerm) {
         return;
       }
       //Set reference bit
@@ -196,14 +197,14 @@ public class MMU extends IflMMU
     private static void do_LRUAlignment(FrameTableEntry frame){
       MyOut.print(frame, "LRU is align");
       LRUlist.remove(frame);
-      LRUlist.insert(frame);
+      LRUlist.append(frame);
     }
     public static void newLRU(FrameTableEntry frame){
       MyOut.print(frame, "Insert frame into LRU list.");
       if (LRUlist.contains(frame)) {
         return;
       }
-      LRUlist.insert(frame);
+      LRUlist.append(frame);
     }
     public static FrameTableEntry getLRUframe(){
       MyOut.print(MMU.getPTBR().getTask(), "Get LRU frame.");
@@ -221,7 +222,7 @@ public class MMU extends IflMMU
     /**
     *   This method free a frame from a page
     */
-    public static void free(FrameTableEntry frame){
+    synchronized public static void free(FrameTableEntry frame){
       MyOut.print(frame, "Free " + frame);
       frame.setReferenced(false);
       frame.setPage(null);
