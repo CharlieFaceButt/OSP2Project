@@ -42,11 +42,15 @@ public class DiskInterruptHandler extends IflDiskInterruptHandler
     */
     public void do_handleInterrupt()
     {
+        MyOut.print(this, "Handle disk interrupt");
         //Obtain information from the the interrupt vector
         IORB iorb = (IORB)(InterruptVector.getEvent());
         //Decrement the IORB count of the associated openfile
         OpenFile swapFile = iorb.getOpenFile();
-        swapFile.decrementIORBCount();
+        synchronized (swapFile){
+            swapFile.decrementIORBCount();   
+            MyOut.print(swapFile, "decrement IORB count");
+        }
         //Close the file when closePending flag is true and IORB count
         //is 0
         if (swapFile.closePending && swapFile.getIORBCount() == 0) {
@@ -74,7 +78,7 @@ public class DiskInterruptHandler extends IflDiskInterruptHandler
             }
         }
         //Unreserve the frame if the task is terminated
-        if (task.getStatus() == TaskTerm) {
+        if (task.getStatus() == TaskTerm && frame.isReserved()) {
             frame.setUnreserved(task);
         }
         //Notify all threads waiting for this IORB
@@ -85,7 +89,7 @@ public class DiskInterruptHandler extends IflDiskInterruptHandler
         //The device restart a new I/O request if there is
         IORB newRequest = device.dequeueIORB();
         if (newRequest != null) {
-            device.startIO(iorb);
+            device.startIO(newRequest);
         }
         //A chance to dispatch new thread
         ThreadCB.dispatch();

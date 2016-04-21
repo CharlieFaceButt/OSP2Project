@@ -3,6 +3,7 @@ import osp.IFLModules.*;
 import osp.FileSys.OpenFile;
 import osp.Threads.ThreadCB;
 import osp.Memory.PageTableEntry;
+import osp.Utilities.*;
 
 /** 
 *   This class contains all the information necessary to carry out
@@ -26,6 +27,7 @@ public class IORB extends IflIORB
     int blockNumber, int deviceID, 
     int ioType, OpenFile openFile) {
         super(thread, page, blockNumber, deviceID, ioType, openFile);
+        MyOut.print(this, "Create IORB object " + this);
     }
 
 }

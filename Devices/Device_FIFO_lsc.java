@@ -19,7 +19,6 @@ import java.util.*;
 
 public class Device extends IflDevice
 {
-    protected IORBQueue iorbQueue;
     /**
     *        This constructor initializes a device with the provided parameters. 
     *        As a first statement it must have the following:
@@ -33,6 +32,7 @@ public class Device extends IflDevice
     {
         super(id, numberOfBlocks);
         iorbQueue = new IORBQueue();
+        // MyOut.print(this, "Create device.");
     }
 
     /**
@@ -65,38 +65,61 @@ public class Device extends IflDevice
     */
     public int do_enqueueIORB(IORB iorb)
     {
+        MyOut.print(this, "Enqueue for " + iorb);
         if (iorb == null) {
-            MyOut.error(iorb, "IORB is null");
+            MyOut.print(iorb, "IORB is null");
+            return FAILURE;
+        }
+
+        //Return FAILURE if the requesting thread is killed.
+        ThreadCB thread = iorb.getThread();
+        if (isThreadDead(thread)) {
+            return FAILURE;
         }
         //Lock the page associated with the iorb, to ensure that the
         //page will not be swapped out till the end of the operation.
-        iorb.getPage().lock(iorb);
+        PageTableEntry page = iorb.getPage();
+        if (SUCCESS != page.lock(iorb)){
+            if (page.getFrame() != null) {
+                page.unlock();
+            }
+            return FAILURE;
+        }
 
         //Increment IORB count of the open file handle, to prevent 
         //closing before all I/O operation have finished.
-        iorb.getOpenFile().incrementIORBCount();
+        OpenFile swapFile = iorb.getOpenFile();
+        synchronized (swapFile){
+            swapFile.incrementIORBCount();
+        }
 
         //Set the cylinder of the IORB to the device(disk)
         int cylinder = computeCylinder(iorb.getBlockNumber());
         iorb.setCylinder(cylinder);
 
+        // if (isBusy()) {
+        //     //If the device is busy, put iorb on the waiting queue.
+        //     ((IORBQueue)iorbQueue).enqueue(iorb);
+        // } else {
+        //     //If the device is idle, start I/O and return SUCCESS
+        //     //Start immediately?
+        //     startIO(iorb);
+        // }
+
         //Return FAILURE if the requesting thread is killed.
-        ThreadCB thread = iorb.getThread();
-        if (thread == null || thread.getStatus() == ThreadKill) {
-            return FAILURE;
-        } else {
-            TaskCB task = thread.getTask();
-            if (task != null && task.getStatus() == TaskTerm) {
-                return FAILURE;
+        // ThreadCB thread = iorb.getThread();
+        if (isThreadDead(thread)) {
+            synchronized (swapFile){
+                swapFile.decrementIORBCount();
             }
+            page.unlock();
+            return FAILURE;
         }
 
-        if (isBusy()) {
-            //If the device is busy, put iorb on the waiting queue.
-            iorbQueue.enqueue(iorb);
-        } else {
-            //If the device is idle, start I/O and return SUCCESS
-            startIO(iorb);
+        ((IORBQueue)iorbQueue).enqueue(iorb);
+        if (!isBusy()) {
+            //Start I/O if the device is idle
+            startIO(do_dequeueIORB());
         }
         
         return SUCCESS;
@@ -113,10 +136,11 @@ public class Device extends IflDevice
     */
     public IORB do_dequeueIORB()
     {
+        MyOut.print(this, "Dequeue");
         // if (iorbQueue.isEmpty()) {
         //     return null;
         // }
-        return iorbQueue.dequeue();
+        return ((IORBQueue)iorbQueue).dequeue();
     }
 
     /**
@@ -134,7 +158,8 @@ public class Device extends IflDevice
     */
     public void do_cancelPendingIO(ThreadCB thread)
     {
-        iorbQueue.cancelPendingIO(thread);
+        MyOut.print(this, "Cancel pending I/O for " + thread);
+        ((IORBQueue)iorbQueue).cancelPendingIO(thread);
     }
 
     /** 
@@ -147,8 +172,6 @@ public class Device extends IflDevice
     */
     public static void atError()
     {
-        // your code goes here
-
     }
 
     /** 
@@ -161,35 +184,61 @@ public class Device extends IflDevice
      */
     public static void atWarning()
     {
-        // your code goes here
-
     }
 
     /**
     *   Calculate the cylinder number of a block
     */
-    private int computeCylinder(int blockNumber){
+    public int computeCylinder(int blockNumber){
+        MyOut.print(this, "Calculate cylinder for block number " + blockNumber);
         Disk disk = (Disk)this;
-        int addressBits = MMU.getVirtualAddressBits();
-        int pageAddressBits = MMU.getPageAddressBits();
-        int blockSizeBits = addressBits - pageAddressBits;
+        //Number of address bits 
+        int a = MMU.getVirtualAddressBits();
+        //Number of bits for page number
+        int p = MMU.getPageAddressBits();
+        //Number of bits within block(page)
+        int b = a - p;
+        MyOut.print(this, "\tAddress bits(page|offset): " + 
+            a + "(" + p + "|" + b + ")");
         //The block size is equal to the memory page size
-        int blockSize = (int)(Math.pow(2, blockSizeBits));
+        int blockSize = (int)(Math.pow(2, b));
+
+        MyOut.print(this, "\tbytes per sector: " + disk.getBytesPerSector() + 
+            "\n\t\tsectors per track: " + disk.getSectorsPerTrack() + 
+            "\n\t\ttracks per platter: " + disk.getTracksPerPlatter() +
+            "\n\t\tplatters per disk: " + disk.getPlatters());
         //The number of blocks in a track
         int blocksPerTrack = 
             disk.getSectorsPerTrack() * 
             disk.getBytesPerSector() / blockSize;
+        //Two surfaces
+        blocksPerTrack *= disk.getPlatters();
+        MyOut.print(this, "\tBlock number per track: " + blocksPerTrack);
+        //The number of blocks in a platter
+        int blocksPerPlatter = blocksPerTrack * disk.getTracksPerPlatter();
+        MyOut.print(this, "\tBlock number per platter: " + blocksPerPlatter);
         //Block number cannot exceed the amount of block a device can hold
-        int platterNumber = (blockNumber / 
-            (blocksPerTrack * disk.getTracksPerPlatter())) + 1;
-        if (platterNumber > disk.getPlatters()) {
-            MyOut.error(this, "block number exceeds the device range");
+        int platterNumber = blockNumber / blocksPerPlatter;
+        if (platterNumber >= disk.getPlatters()) {
+            MyOut.error(this, "\tblock number exceeds the device range");
         }
         //The cylinder that holds the block
-        int cylinder = (blockNumber % blocksPerTrack) % disk.getTracksPerPlatter();
-        MyOut.print(this, "Calculate (cylinder/blockNumber): " + cylinder + 
+        int cylinder = (blockNumber - platterNumber * blocksPerPlatter) / blocksPerTrack;
+        MyOut.print(this, "\tCalculate (cylinder/blockNumber): " + cylinder + 
             "/" + blockNumber);
         return cylinder;
+    }
+
+    private boolean isThreadDead(ThreadCB thread){
+        if (thread == null || thread.getStatus() == ThreadKill) {
+            return true;
+        } else {
+            TaskCB task = thread.getTask();
+            if (task != null && task.getStatus() == TaskTerm) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -209,6 +258,7 @@ public class Device extends IflDevice
         *   FIFO put new request to the end of the queue
         */
         public void enqueue(IORB iorb){
+            MyOut.print(this, "actual enqueue.");
             queue.append(iorb);
         }
 
@@ -216,11 +266,15 @@ public class Device extends IflDevice
         *   FIFO remove the head of the queue.
         */
         public IORB dequeue(){
+            MyOut.print(this, "actual dequeue.");
             if (isEmpty()) {
                 MyOut.print(this, "Cannot remove item from empty IORB queue.");
                 return null;
             }
             Object obj = queue.removeHead();
+            if (obj == null) {
+                MyOut.error(this, "Queue should provide an object");
+            }
             return (IORB)obj;
         }
 
@@ -229,6 +283,7 @@ public class Device extends IflDevice
         *   in terms of a killed thread.
         */
         public void cancelPendingIO(ThreadCB thread){
+            MyOut.print(this, "actual canceling of pending I/O for " + thread);
             if (thread == null) {
                 return;
             }
@@ -238,10 +293,14 @@ public class Device extends IflDevice
                 Object obj = iterator.nextElement();
                 IORB request = (IORB)obj;
                 if (request.getThread().getID() == thread.getID()) {
+                    MyOut.print(this, "canceling " + request);
                     //Remove IORB of the thread
                     queue.remove(obj);
                     //Unlock corresponding page
-                    request.getPage().unlock();
+                    PageTableEntry page = request.getPage();
+                    if (page.getFrame() != null && page.getFrame().getLockCount() > 0) {
+                        page.unlock();
+                    }
                     //Decrement the IORB count of the open file
                     OpenFile swapFile = request.getOpenFile();
                     swapFile.decrementIORBCount();
