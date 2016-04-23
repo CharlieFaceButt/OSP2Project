@@ -19,6 +19,8 @@ import java.util.*;
 
 public class Device extends IflDevice
 {
+    private Stats stat;
+
     /**
     *        This constructor initializes a device with the provided parameters. 
     *        As a first statement it must have the following:
@@ -32,6 +34,7 @@ public class Device extends IflDevice
     {
         super(id, numberOfBlocks);
         iorbQueue = new IORBQueue();
+        stat = new Stats(this);
         // MyOut.print(this, "Create device.");
     }
 
@@ -43,7 +46,6 @@ public class Device extends IflDevice
     */
     public static void init()
     {
-
     }
 
     /**
@@ -97,15 +99,6 @@ public class Device extends IflDevice
         int cylinder = computeCylinder(iorb.getBlockNumber());
         iorb.setCylinder(cylinder);
 
-        // if (isBusy()) {
-        //     //If the device is busy, put iorb on the waiting queue.
-        //     ((IORBQueue)iorbQueue).enqueue(iorb);
-        // } else {
-        //     //If the device is idle, start I/O and return SUCCESS
-        //     //Start immediately?
-        //     startIO(iorb);
-        // }
-
         //Return FAILURE if the requesting thread is killed.
         // ThreadCB thread = iorb.getThread();
         if (isThreadDead(thread)) {
@@ -140,7 +133,17 @@ public class Device extends IflDevice
         // if (iorbQueue.isEmpty()) {
         //     return null;
         // }
-        return ((IORBQueue)iorbQueue).dequeue();
+        IORB iorb = ((IORBQueue)iorbQueue).dequeue();
+        if (iorb != null) {
+            // MyOut.print(this, "current head position: " + ((Disk)this).getHeadPosition() +
+            //     "target head position: " + iorb.getCylinder());
+            stat.inputHeadStat(
+                ((Disk)this).getHeadPosition(),
+                iorb.getCylinder(),
+                iorb.createTime,
+                HClock.get());
+        }
+        return iorb;
     }
 
     /**
@@ -249,33 +252,112 @@ public class Device extends IflDevice
     *   Current implementation: FIFO
     */
     public class IORBQueue implements GenericQueueInterface{
-        private GenericList queue;
+        /**
+        *   FIFO queue
+        */
+        // private GenericList queue;
+        /**
+        *   C-SCAN queue
+        */
+        private Vector<IORB> queue;
+
         public IORBQueue(){
-            queue = new GenericList();
+            // queue = new GenericList();
+            queue = new Vector<IORB>();
         }
 
         /**
         *   FIFO put new request to the end of the queue
         */
-        public void enqueue(IORB iorb){
+        synchronized public void enqueue(IORB iorb){
             MyOut.print(this, "actual enqueue.");
-            queue.append(iorb);
+            iorb.enqueueTime = HClock.get();
+
+            // /* FIFO enqueue */
+            // queue.append(iorb);
+            /* FIFO enqueue end */
+
+            /* C-SCAN enqueue */
+            do_cscanEnqueue(iorb);
+            /* C-SCAN enqueue end */
+        }
+        /**
+        *   The cscan algorithm sort IORB queue by track number.
+        */
+        private void do_cscanEnqueue(IORB iorb){
+            int n = queue.size();
+            if (n == 0){
+                queue.add(iorb);
+                return;
+            }
+            int indexBegin = 0;
+            int indexEnd = n - 1;
+            int number = iorb.getCylinder();
+            while(n!=1){
+                int index = indexBegin + (indexEnd - indexBegin) / 2;
+                int chosen = queue.get(index).getCylinder();
+                if (number < chosen){
+                    indexEnd = index - 1;
+                    if (indexEnd < indexBegin){
+                        indexEnd = indexBegin;
+                        break;
+                    }
+                }else if (number > chosen){
+                    indexBegin = index + 1;
+                    if (indexBegin > indexEnd){
+                        indexBegin = indexEnd;
+                        break;
+                    }
+                }else{
+                    break;
+                }
+                n = indexEnd - indexBegin + 1;
+            }
+            if (queue.size() > 0 && number > queue.get(indexBegin).getCylinder())
+                queue.insertElementAt(iorb, indexBegin + 1);
+            else queue.insertElementAt(iorb, indexBegin);
         }
 
         /**
         *   FIFO remove the head of the queue.
         */
-        public IORB dequeue(){
+        synchronized public IORB dequeue(){
             MyOut.print(this, "actual dequeue.");
             if (isEmpty()) {
                 MyOut.print(this, "Cannot remove item from empty IORB queue.");
                 return null;
             }
-            Object obj = queue.removeHead();
+            // /* FIFO dequeue */
+            // Object obj = queue.removeHead();
+            // /* FIFO dequeue end */
+            /* C-SCAN dequeue */
+            Device device = Device.get(((IORB)(queue.get(0))).getDeviceID());
+            int headPos = ((Disk)device).getHeadPosition();
+            Object obj = do_cscanDequeue(headPos);
+            /* C-SCAN dequeue end */
             if (obj == null) {
                 MyOut.error(this, "Queue should provide an object");
             }
+            ((IORB)obj).dequeueTime = HClock.get();
             return (IORB)obj;
+        }
+        /**
+        *   C-SCAN algorithm choose the iorb with the next closest track, 
+        *   if it reach the edge, it go back to the other edge and start 
+        *   new search.
+        */
+        private IORB do_cscanDequeue(int number){
+            Enumeration iterator = queue.elements();
+            while (iterator.hasMoreElements()){
+                Object obj = iterator.nextElement();
+                IORB iorb = (IORB)obj;
+                if (iorb.getCylinder() > number) {
+                    if (queue.remove(obj)){
+                        return iorb;
+                    }
+                }
+            }
+            return queue.remove(0);
         }
 
         /**
@@ -288,34 +370,43 @@ public class Device extends IflDevice
                 return;
             }
             //Search all pending IO
-            Enumeration iterator = queue.forwardIterator();
+            // //FIFO
+            // Enumeration iterator = queue.forwardIterator();
+            Enumeration iterator = queue.elements();
             while(iterator.hasMoreElements()){
                 Object obj = iterator.nextElement();
                 IORB request = (IORB)obj;
-                if (request.getThread().getID() == thread.getID()) {
-                    MyOut.print(this, "canceling " + request);
-                    //Remove IORB of the thread
-                    queue.remove(obj);
-                    //Unlock corresponding page
-                    PageTableEntry page = request.getPage();
-                    if (page.getFrame() != null && page.getFrame().getLockCount() > 0) {
-                        page.unlock();
-                    }
-                    //Decrement the IORB count of the open file
-                    OpenFile swapFile = request.getOpenFile();
-                    swapFile.decrementIORBCount();
-                    //Close the open file handle when the close pending 
-                    //flag is true and IORB count becomes 0.
-                    if (swapFile.closePending && swapFile.getIORBCount() == 0) {
-                        swapFile.close();
-                    }
+                cancelingIO(request, thread);
+            }
+        }
+        private void cancelingIO(IORB request, ThreadCB thread){
+            if (request.getThread().getID() == thread.getID()) {
+                MyOut.print(this, "canceling " + request);
+                //Remove IORB of the thread
+                queue.remove(request);
+                //Unlock corresponding page
+                PageTableEntry page = request.getPage();
+                if (page.getFrame() != null && page.getFrame().getLockCount() > 0) {
+                    page.unlock();
+                }
+                //Decrement the IORB count of the open file
+                OpenFile swapFile = request.getOpenFile();
+                swapFile.decrementIORBCount();
+                //Close the open file handle when the close pending 
+                //flag is true and IORB count becomes 0.
+                if (swapFile.closePending && swapFile.getIORBCount() == 0) {
+                    swapFile.close();
                 }
             }
         }
 
-
         public int length(){
-            return queue.length();
+            // /* FIFO */
+            // return queue.length();
+            // /* FIFO end */
+            /* C-SCAN */
+            return queue.size();
+            /* C-SCAN end */
         }
         public boolean isEmpty(){
             return queue.isEmpty();
