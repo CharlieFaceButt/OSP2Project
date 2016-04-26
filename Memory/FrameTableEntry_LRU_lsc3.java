@@ -23,8 +23,6 @@ import osp.IFLModules.IflFrameTableEntry;
 
 public class FrameTableEntry extends IflFrameTableEntry
 {
-    // public int max_lru_count;
-    // private int lru_count;
     /**
     *       The frame constructor. Must have
     *
@@ -45,28 +43,4 @@ public class FrameTableEntry extends IflFrameTableEntry
             return true;
         } else return false;
     }
-    // /**
-    // *   This method get the count of LRU counter. Each frame
-    // *   has a LRU counter, each time a frame is used, its LRU
-    // *   count is reset to 0, and all other frames that has lower
-    // *   count increase their count.
-    // */
-    // public int getLRUCount(){
-    //     return lru_count;
-    // }
-    // /**
-    // *   This method increase the LRU count of this frame by one
-    // */
-    // public void incrementLRUCount(){
-    //     if (lru_count >= max_lru_count) {
-    //         lru_count = max_lru_count;
-    //     }
-    //     lru_count ++;
-    // }
-    // /**
-    // *   This method reset LRU count of this frame to 0
-    // */
-    // public void resetLRUCount(){
-    //     lru_count = 0;
-    // }
 }
