@@ -176,6 +176,7 @@ public class Device extends IflDevice
         // /* FIFO/C-SCAN/SSTF dequeue end */
 
         if (iorb != null) {
+            // Maintain super class interface
             ((IORBQueue)iorbQueue).dequeue(iorb);
             // MyOut.print(this, "current head position: " + ((Disk)this).getHeadPosition() +
             //     "target head position: " + iorb.getCylinder());
@@ -308,7 +309,7 @@ public class Device extends IflDevice
         */
         // private GenericList queue;
         /**
-        *   C-SCAN queue
+        *   C-SCAN/SSTF/F-SCAN queue
         */
         private Vector<IORB> queue;
 
@@ -403,6 +404,22 @@ public class Device extends IflDevice
             // /* SSTF dequeue end */
 
             /* F-SCAN dequeue */
+            Object obj = do_fscanDequeue();
+            /* F-SCAN dequeue end */
+            if (obj == null) {
+                MyOut.error(this, "Queue should provide an object");
+            }
+            ((IORB)obj).dequeueTime = HClock.get();
+            return (IORB)obj;
+        }
+
+        /**
+        *   F-SCAN algorithm choose the iorb from the scanning queue.
+        *   Each time the scanning queue is refreshed by queuing queue,
+        *   the scanning direction is changed to save time in head 
+        *   movement.
+        */
+        private Object do_fscanDequeue(){
             Object obj = null;
             if (scanFromZero) {
                 obj = queue.firstElement();
@@ -411,12 +428,7 @@ public class Device extends IflDevice
                 obj = queue.lastElement();
                 queue.remove(obj);
             }
-            /* F-SCAN dequeue end */
-            if (obj == null) {
-                MyOut.error(this, "Queue should provide an object");
-            }
-            ((IORB)obj).dequeueTime = HClock.get();
-            return (IORB)obj;
+            return null;
         }
         /**
         *   C-SCAN algorithm choose the iorb with the next closest track, 

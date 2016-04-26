@@ -74,11 +74,11 @@ Additionally, there is a *cleanFrames()* function. It is periodically called by 
 
 ### PageFaultHandler
 
-Nothing special for this class except for that statistic record is done by function *do_stats*. It updates the PFAmount and successfulPFAmoung in MMU and output a record to a file <font color='red'>Statistics.txt</font>.
+Nothing special for this class except for that statistic record is done by function *do_stats*. It updates the PFAmount and successfulPFAmoung in MMU and output a record to a file Statistics.txt.
 
 ## Performance analysis
 
-OSP2 automatically generates log file for all operations and error occured. Additionally our implementation will create a file <font color='red'>Statistics.txt</font> recording statistics for performance data. In the file, each record consists 4 fields: the clock time record was taken, the successful page fault amount(SPF)/ the page fault amount(PF)/ reference amount(REF) at until that clock time.
+OSP2 automatically generates log file for all operations and error occured. Additionally our implementation will create a file Statistics.txt recording statistics for performance data. In the file, each record consists 4 fields: the clock time record was taken, the successful page fault amount(SPF)/ the page fault amount(PF)/ reference amount(REF) at until that clock time.
 
 We took three record file for each replacement algorithm, and the result is shown in the following graph:
 

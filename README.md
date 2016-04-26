@@ -20,8 +20,14 @@ M003_G2
 
 * Compile and run the project:
 
-  > make      //Unix-based systems, use "make debug" to run with debugger
+  > make gui  //compile and run
+
+  > make      //just comple, Unix-based systems, use "make debug" to run with debugger
+
+* For compile:
 
   > javac -g -classpath .:OSP.jar: -d . *.java
+
+* For run:
 
   > java -classpath .:OSP.jar:. osp.OSP
