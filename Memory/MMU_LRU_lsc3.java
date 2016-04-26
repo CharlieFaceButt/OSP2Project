@@ -19,8 +19,17 @@ import osp.FileSys.OpenFile;
 public class MMU extends IflMMU
 {
     private static GenericList LRUlist;
+    /**
+    *   Total page fault amount
+    */
     private static int PFAmount;
+    /**
+    *   Successful page fault amount
+    */
     private static int successfulPFAmount;
+    /**
+    *   Total page reference amount
+    */
     private static int referencedPageNum;
 
     public static void addPFstats(boolean successful){
@@ -199,6 +208,13 @@ public class MMU extends IflMMU
       LRUlist.remove(frame);
       LRUlist.append(frame);
     }
+
+    /**
+    *   This method put a newly active frame into the queue 
+    *   for frame replacement, the frame will gradually move 
+    *   to the head of the queue and selected for replacement
+    *   if no reference for a long time.
+    */
     public static void newLRU(FrameTableEntry frame){
       MyOut.print(frame, "Insert frame into LRU list.");
       if (LRUlist.contains(frame)) {
@@ -206,6 +222,11 @@ public class MMU extends IflMMU
       }
       LRUlist.append(frame);
     }
+
+    /**
+    *   Select the least recently used frame that is valid for
+    *   replacement.
+    */
     public static FrameTableEntry getLRUframe(){
       MyOut.print(MMU.getPTBR().getTask(), "Get LRU frame.");
       FrameTableEntry frame = null;

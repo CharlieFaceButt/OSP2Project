@@ -39,8 +39,8 @@ public class PageTable extends IflPageTable
         pages = new PageTableEntry[maxNumberOfPagesAllowed];
         //Create each page table entry
         for (int i = 0; i < maxNumberOfPagesAllowed; i ++) {
-          //?correct page number
-          pages[i] = new PageTableEntry(this, i);
+            //?correct page number
+            pages[i] = new PageTableEntry(this, i);
         }
     }
 
@@ -63,24 +63,6 @@ public class PageTable extends IflPageTable
                 MMU.free(frame);
             }
         }
-        // for (int i = 0; i < pages.length; i ++) {
-        //     PageTableEntry entry = pages[i];
-        //     if (entry.isValid()) {
-        //         FrameTableEntry frame = entry.getFrame();
-        //         //If the frame is controled by the same page of the 
-        //         //same task, free the frame.
-        //         PageTableEntry originalPage = frame.getPage();
-        //         if (originalPage != null &&
-        //             originalPage.getID() == entry.getID() &&
-        //             originalPage.getTask().getID() == entry.getTask().getID()) {
-        //             //It is possible that some of the frame is locked, 
-        //             //the frame cannot be freed in this case, but it 
-        //             //will never be freed if there is no daemon refresh
-        //             //the memory. 
-        //             MMU.free(frame);
-        //         }
-        //     }
-        // }
         //?Unlocking inside the memory management module can lead to 
         //inconsistencies
     }
