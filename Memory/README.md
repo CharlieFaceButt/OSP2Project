@@ -74,7 +74,7 @@ Additionally, there is a *cleanFrames()* function. It is periodically called by 
 
 ### PageFaultHandler
 
-Nothing special for this class except for that statistic record is done by function *do_stats*. It updates the PFAmount and successfulPFAmoung in MMU and output a record to a file Statistics.txt.
+Nothing special for this class except for that statistic record is done by function *do_stats()*. It updates the PFAmount and successfulPFAmoung in MMU and output a record to a file Statistics.txt.
 
 ## Performance analysis
 
