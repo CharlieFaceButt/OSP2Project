@@ -99,4 +99,13 @@ For device with large amount of operation, the response time:
 |CSCAN|![CSCAN](/Devices/img/RT-CSCAN-swap.png)|
 |SSTF|![SSTF](/Devices/img/RT-SSTF-swap.png)|
 
+Compare with FIFO, FSCAN performs slightly better, while CSCAN and SSTF performs pretty good on average. But CSCAN and SSTF, which make use of locality principle, may starve certain IORBs and these requests may have to wait for time that are tenfold of that in FIFO. So this trade off is shown by the comparison of both average response time and maximum response time:
+
+Average response time:
+
+![average RT](/Devices/img/averageRT.png)
+
+Maximum response time:
+
+![maximum RT](/Devices/img/maximumRT.png)
 
