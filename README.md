@@ -2,6 +2,13 @@
 
 Yo! This project contains two parts: the student project and nothing else.
 
+## Module implemented
+
+* Task
+* Thread
+* Memory
+* Devices
+
 # Group name
 
 M003_G2

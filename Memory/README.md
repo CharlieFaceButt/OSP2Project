@@ -82,7 +82,9 @@ OSP2 automatically generates log file for all operations and error occured. Addi
 
 We took three record file for each replacement algorithm, and the result is shown in the following graph:
 
-picture here...
+![Without locality](/img/Locality.png)
+
+![With locality](/img/NoLocality.png)
 
 The page fault rate of LRU is x% smaller than FIFO and page fault per reference is x% smaller. This proves that the LRU algorithm is slightly better than FIFO in performance.
 
