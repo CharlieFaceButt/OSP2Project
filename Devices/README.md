@@ -86,7 +86,9 @@ We generate head movement data for each device. And do this for all algorithms. 
 
 meaning at clock time 18, disk head is now at track 0 and will move to 1, the requesting IORB is created at clock time 18.
 
-The list of record gives the behavior of the disk head and the response time of IORB request. The results of analyzing these two criteria are shown here:
+The list of record gives the behavior of the disk head and the response time of IORB request. The behavior of the disk head is recorded so that we can recognize whether the pattern follows locality principle, which shows indeed:
 
-pictures...
+![pattern](/Devices/img/FIFO-swap.png)
+
+For device with large amount of operation
 
