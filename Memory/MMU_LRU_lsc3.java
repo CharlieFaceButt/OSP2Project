@@ -218,7 +218,7 @@ public class MMU extends IflMMU
     public static void newLRU(FrameTableEntry frame){
       MyOut.print(frame, "Insert frame into LRU list.");
       if (LRUlist.contains(frame)) {
-        return;
+        LRUlist.remove(frame);
       }
       LRUlist.append(frame);
     }

@@ -15,6 +15,20 @@ XXL
 
 There are two implementations for this sub-project corresponding to two [replacement algorithm](https://en.wikipedia.org/wiki/Page_replacement_algorithm): FIFO and LRU. Each implemation will followed by an performance analysis.
 
+Current file runnable:
+
+* MMDaemon_LRU_lsc3
+* MMU_LRU_lsc3
+* PageFaultHandler_LRU_lsc3
+* PageTable_LRU_lsc3
+* PageTableEntry_LRU_lsc3
+* FrameTableEntry_LRU_lsc3
+
+For FIFO algorithm:
+
+Just cancel all the use of do_LRUAlignment(). This function refresh a frame to the end of the queue when a frame is refered without pagefault. FIFO does not do that and that is the only difference between FIFO and LRU.
+
+
 ## Tasks
 
 |Tasks		|Status	|Assignment	|
@@ -82,11 +96,9 @@ OSP2 automatically generates log file for all operations and error occured. Addi
 
 We took three record file for each replacement algorithm, and the result is shown in the following graph:
 
-![Without locality](/img/Locality.png)
+![With locality](/img/performance.png)
 
-![With locality](/img/NoLocality.png)
-
-The page fault rate of LRU is x% smaller than FIFO and page fault per reference is x% smaller. This proves that the LRU algorithm is slightly better than FIFO in performance.
+The page fault per reference of LRU is smaller than FIFO. This proves that the LRU algorithm is slightly better than FIFO in performance.
 
 ## A mistake in the manual
 
