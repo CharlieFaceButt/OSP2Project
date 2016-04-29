@@ -90,5 +90,13 @@ The list of record gives the behavior of the disk head and the response time of 
 
 ![pattern](/Devices/img/FIFO-swap.png)
 
-For device with large amount of operation
+For device with large amount of operation, the response time:
+
+|algorithm|response time (ordered by dequeue time)|
+|---------|---------------------------------------|
+|FIFO|![FIFO](/Devices/img/RT-FIFO-swap.png)|
+|FSCAN|![FSCAN](/Devices/img/RT-FSCAN-swap.png)|
+|CSCAN|![CSCAN](/Devices/img/RT-CSCAN-swap.png)|
+|SSTF|![SSTF](/Devices/img/RT-SSTF-swap.png)|
+
 
