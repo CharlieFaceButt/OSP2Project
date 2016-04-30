@@ -9,6 +9,8 @@ Yo! This project contains two parts: the student project and nothing else.
 * Memory
 * Devices
 
+For details, see README for each module.
+
 # Group name
 
 M003_G2
