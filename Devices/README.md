@@ -101,8 +101,8 @@ For device with large amount of operation, the response time:
 
 Compare with FIFO, FSCAN performs slightly better, while CSCAN and SSTF performs pretty good on average. But CSCAN and SSTF, which make use of locality principle, may starve certain IORBs and these requests may have to wait for time that are tenfold of that in FIFO. So this trade off is shown by the comparison of both average response time and maximum response time:
 
-![average RT](/Devices/img/averageRT.png =60%)
+![average RT](/Devices/img/averageRT.png =60x)
 
-![maximum RT](/Devices/img/maximumRT.png =60%)
+![maximum RT](/Devices/img/maximumRT.png =60x)
 
 In terms of maximum response time, CSCAN and SSTF are no longer desirable choices. Generally, FSCAN not only improves the average response time but also avoid starvation.
